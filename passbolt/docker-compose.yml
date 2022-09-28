@@ -35,8 +35,8 @@ services:
     depends_on:
       - db
     environment:
-      APP_BASE: "/passbolt"
-      APP_FULL_BASE_URL: "https://mcia04.upc.edu"
+      APP_BASE: "${APP_BASE}"
+      APP_FULL_BASE_URL: "${APP_FULL_BASE_URL}"
       PASSBOLT_SSL_FORCE: "FALSE"
       DATASOURCES_DEFAULT_HOST: "db"
       DATASOURCES_DEFAULT_USERNAME: "${MYSQL_USER}"
