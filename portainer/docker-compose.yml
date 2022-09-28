@@ -1,0 +1,44 @@
+version: '3.9'
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  portainer_data:
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    networks:
+      - proxy
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      # So that portainer can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      - "traefik.enable=true"
+
+      # Frontend
+      - "traefik.http.routers.portainer-frontend.rule=PathPrefix(`/portainer`)"
+      # strip /portainer to work with path
+      - "traefik.http.middlewares.remove-path-portainer.stripprefix.prefixes=/portainer"
+      - "traefik.http.routers.portainer-frontend.middlewares=remove-path-portainer@docker"
+      # - "traefik.http.routers.portainer-frontend.rule=Host(`portainer.yourdomain.com`)"
+      - "traefik.http.routers.portainer-frontend.entrypoints=websecure"
+      - "traefik.http.services.portainer-frontend.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer-frontend.service=portainer-frontend"
+
+      # Edge
+      - "traefik.http.routers.portainer-edge.rule=PathPrefix(`/edge`)"
+      # strip /edge to work with path
+      - "traefik.http.middlewares.remove-path-edge.stripprefix.prefixes=/edge"
+      - "traefik.http.routers.portainer-edge.middlewares=remove-path-edge@docker"
+      # - "traefik.http.routers.portainer-edge.rule=Host(`edge.yourdomain.com`)"
+      - "traefik.http.routers.portainer-edge.entrypoints=websecure"
+      - "traefik.http.services.portainer-edge.loadbalancer.server.port=8000"
+      - "traefik.http.routers.portainer-edge.service=portainer-edge"
